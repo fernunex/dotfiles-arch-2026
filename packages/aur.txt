@@ -1,0 +1,7 @@
+bibata-cursor-theme-bin
+brave-bin
+mpvpaper
+mpvpaper-debug
+onlyoffice-bin
+paru
+paru-debug
