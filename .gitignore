@@ -1,0 +1,18 @@
+# Backups
+*.bak
+*.bak-*
+*.old
+*~
+
+# Histories / private runtime files
+.zsh_history
+.bash_history
+
+# Cache
+.cache/
+__pycache__/
+
+# OS/editor junk
+.DS_Store
+*.swp
+*.swo

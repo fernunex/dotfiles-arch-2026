@@ -1,0 +1,94 @@
+# =========================
+# Starship - Dark Red Setup
+# =========================
+
+format = """
+$username$hostname$directory$git_branch$git_status$nodejs$python$rust$golang$c$java$docker_context
+$character"""
+
+add_newline = true
+
+palette = "dark_red"
+
+[palettes.dark_red]
+red = "#ff3333"
+darkred = "#aa0000"
+black = "#050505"
+gray = "#888888"
+white = "#f8f8f2"
+cyan = "#8be9fd"
+green = "#50fa7b"
+yellow = "#f1fa8c"
+purple = "#bd93f9"
+
+[username]
+show_always = true
+style_user = "bold red"
+style_root = "bold yellow"
+format = "[$user]($style)"
+
+[hostname]
+ssh_only = false
+style = "bold gray"
+format = "[@$hostname ]($style)"
+
+[directory]
+style = "bold cyan"
+read_only = " "
+truncation_length = 3
+truncate_to_repo = false
+format = "[$path]($style)[$read_only]($read_only_style) "
+
+[git_branch]
+symbol = " "
+style = "bold red"
+format = "on [$symbol$branch]($style) "
+
+[git_status]
+style = "bold yellow"
+format = "[$all_status$ahead_behind]($style) "
+
+[nodejs]
+symbol = " "
+style = "bold green"
+format = "[$symbol($version)]($style) "
+
+[python]
+symbol = " "
+style = "bold yellow"
+format = "[$symbol($version)]($style) "
+
+[rust]
+symbol = " "
+style = "bold red"
+format = "[$symbol($version)]($style) "
+
+[golang]
+symbol = " "
+style = "bold cyan"
+format = "[$symbol($version)]($style) "
+
+[c]
+symbol = " "
+style = "bold blue"
+format = "[$symbol($version)]($style) "
+
+[java]
+symbol = " "
+style = "bold red"
+format = "[$symbol($version)]($style) "
+
+[docker_context]
+symbol = " "
+style = "bold cyan"
+format = "[$symbol$context]($style) "
+
+[cmd_duration]
+min_time = 1000
+style = "bold gray"
+format = "took [$duration]($style) "
+
+[character]
+success_symbol = "[❯](bold red)"
+error_symbol = "[✗](bold yellow)"
+vimcmd_symbol = "[❮](bold green)"

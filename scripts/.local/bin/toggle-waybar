@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+
+if pgrep -x waybar >/dev/null; then
+    pkill waybar
+else
+    cd "$HOME/.config/waybar" || exit 1
+    setsid waybar -c config.jsonc -s style.css >/tmp/waybar.log 2>&1 &
+fi

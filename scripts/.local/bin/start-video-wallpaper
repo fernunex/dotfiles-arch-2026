@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+VIDEO="$HOME/Videos/Wallpapers/wallpaper.mp4"
+OUTPUT="eDP-1"
+
+# Avoid duplicates
+pkill mpvpaper 2>/dev/null
+
+# Start video wallpaper
+setsid mpvpaper -f -o "no-audio loop-file=inf" "$OUTPUT" "$VIDEO" >/tmp/mpvpaper.log 2>&1 &

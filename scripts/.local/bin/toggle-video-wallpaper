@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+if pgrep -x mpvpaper >/dev/null; then
+    pkill mpvpaper
+else
+    "$HOME/.local/bin/start-video-wallpaper"
+fi
