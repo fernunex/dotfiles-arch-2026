@@ -4,6 +4,7 @@ base
 base-devel
 bash-completion
 bat
+bitwarden
 blueman
 bluez
 bluez-utils
@@ -22,9 +23,11 @@ eza
 fakeroot
 fastfetch
 fd
+firefox
 fuzzel
 fzf
 git
+github-cli
 greetd
 greetd-tuigreet
 grim
@@ -84,6 +87,7 @@ swappy
 swaync
 texinfo
 thunar
+thunderbird
 tree
 ttf-jetbrains-mono-nerd
 unrar
@@ -91,6 +95,7 @@ unzip
 vim
 vulkan-intel
 waybar
+wev
 wget
 wireplumber
 wl-clipboard
