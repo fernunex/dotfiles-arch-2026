@@ -1,0 +1,239 @@
+#!/usr/bin/env bash
+
+set -u
+
+STATE="${XDG_RUNTIME_DIR:-/tmp}/hypr-arrange-mode"
+
+notify() {
+    notify-send "Hypr arrange" "$1" 2>/dev/null || true
+}
+
+ws_json="$(hyprctl activeworkspace -j)"
+ws_id="$(jq -r '.id' <<< "$ws_json")"
+mon_name="$(jq -r '.monitor' <<< "$ws_json")"
+
+read -r mx my mw mh < <(
+    hyprctl monitors -j |
+        jq -r --arg mon "$mon_name" '.[] | select(.name == $mon) | "\(.x) \(.y) \(.width) \(.height)"'
+)
+
+# Adjust these if Waybar / gaps need more or less space
+TOP_GAP=54
+GAP=14
+
+X=$((mx + GAP))
+Y=$((my + TOP_GAP + GAP))
+W=$((mw - 2 * GAP))
+H=$((mh - TOP_GAP - 2 * GAP))
+
+active="$(hyprctl activewindow -j | jq -r '.address // empty')"
+
+mapfile -t raw_windows < <(
+    hyprctl clients -j |
+        jq -r --argjson ws "$ws_id" '
+            .[]
+            | select(.workspace.id == $ws)
+            | select(.mapped == true)
+            | select(.hidden == false)
+            | select(.fullscreen == 0)
+            | .address
+        '
+)
+
+windows=()
+
+# Put active window first. This makes main/stack layouts feel natural.
+if [[ -n "$active" ]]; then
+    for addr in "${raw_windows[@]}"; do
+        [[ "$addr" == "$active" ]] && windows+=("$addr")
+    done
+fi
+
+for addr in "${raw_windows[@]}"; do
+    [[ "$addr" != "$active" ]] && windows+=("$addr")
+done
+
+n="${#windows[@]}"
+
+if (( n == 0 )); then
+    notify "No windows found on this workspace."
+    exit 0
+fi
+
+place_window() {
+    local addr="$1"
+    local px="$2"
+    local py="$3"
+    local pw="$4"
+    local ph="$5"
+
+    hyprctl dispatch setfloating "address:$addr" >/dev/null 2>&1 || true
+    hyprctl dispatch resizewindowpixel "exact $pw $ph,address:$addr" >/dev/null 2>&1 || true
+    hyprctl dispatch movewindowpixel "exact $px $py,address:$addr" >/dev/null 2>&1 || true
+}
+
+tile_all() {
+    for addr in "${windows[@]}"; do
+        hyprctl dispatch settiled "address:$addr" >/dev/null 2>&1 || true
+    done
+
+    echo 0 > "$STATE"
+    notify "Tiled layout restored."
+}
+
+layout_grid() {
+    local cols rows
+
+    if (( n <= 1 )); then
+        cols=1
+        rows=1
+    elif (( n <= 2 )); then
+        cols=2
+        rows=1
+    elif (( n <= 4 )); then
+        cols=2
+        rows=2
+    elif (( n <= 6 )); then
+        cols=3
+        rows=2
+    else
+        cols=3
+        rows=$(( (n + cols - 1) / cols ))
+    fi
+
+    local cell_w=$(( (W - (cols - 1) * GAP) / cols ))
+    local cell_h=$(( (H - (rows - 1) * GAP) / rows ))
+
+    for i in "${!windows[@]}"; do
+        local row=$(( i / cols ))
+        local col=$(( i % cols ))
+        local px=$(( X + col * (cell_w + GAP) ))
+        local py=$(( Y + row * (cell_h + GAP) ))
+
+        place_window "${windows[$i]}" "$px" "$py" "$cell_w" "$cell_h"
+    done
+
+    notify "Grid layout."
+}
+
+layout_main_left() {
+    if (( n == 1 )); then
+        local ww=$(( W * 70 / 100 ))
+        local hh=$(( H * 78 / 100 ))
+        local px=$(( X + (W - ww) / 2 ))
+        local py=$(( Y + (H - hh) / 2 ))
+        place_window "${windows[0]}" "$px" "$py" "$ww" "$hh"
+        notify "Centered single window."
+        return
+    fi
+
+    local main_w=$(( W * 62 / 100 ))
+    local stack_w=$(( W - main_w - GAP ))
+    local stack_n=$(( n - 1 ))
+    local stack_h=$(( (H - (stack_n - 1) * GAP) / stack_n ))
+
+    place_window "${windows[0]}" "$X" "$Y" "$main_w" "$H"
+
+    for (( i = 1; i < n; i++ )); do
+        local py=$(( Y + (i - 1) * (stack_h + GAP) ))
+        local px=$(( X + main_w + GAP ))
+
+        place_window "${windows[$i]}" "$px" "$py" "$stack_w" "$stack_h"
+    done
+
+    notify "Main left + stack right."
+}
+
+layout_main_right() {
+    if (( n == 1 )); then
+        local ww=$(( W * 70 / 100 ))
+        local hh=$(( H * 78 / 100 ))
+        local px=$(( X + (W - ww) / 2 ))
+        local py=$(( Y + (H - hh) / 2 ))
+        place_window "${windows[0]}" "$px" "$py" "$ww" "$hh"
+        notify "Centered single window."
+        return
+    fi
+
+    local stack_w=$(( W * 38 / 100 ))
+    local main_w=$(( W - stack_w - GAP ))
+    local stack_n=$(( n - 1 ))
+    local stack_h=$(( (H - (stack_n - 1) * GAP) / stack_n ))
+
+    place_window "${windows[0]}" "$((X + stack_w + GAP))" "$Y" "$main_w" "$H"
+
+    for (( i = 1; i < n; i++ )); do
+        local py=$(( Y + (i - 1) * (stack_h + GAP) ))
+
+        place_window "${windows[$i]}" "$X" "$py" "$stack_w" "$stack_h"
+    done
+
+    notify "Stack left + main right."
+}
+
+layout_two_columns() {
+    if (( n == 1 )); then
+        local ww=$(( W * 70 / 100 ))
+        local hh=$(( H * 78 / 100 ))
+        local px=$(( X + (W - ww) / 2 ))
+        local py=$(( Y + (H - hh) / 2 ))
+        place_window "${windows[0]}" "$px" "$py" "$ww" "$hh"
+        notify "Centered single window."
+        return
+    fi
+
+    local left_n=$(( (n + 1) / 2 ))
+    local right_n=$(( n - left_n ))
+    local col_w=$(( (W - GAP) / 2 ))
+
+    local left_h=$(( (H - (left_n - 1) * GAP) / left_n ))
+
+    for (( i = 0; i < left_n; i++ )); do
+        local py=$(( Y + i * (left_h + GAP) ))
+
+        place_window "${windows[$i]}" "$X" "$py" "$col_w" "$left_h"
+    done
+
+    if (( right_n > 0 )); then
+        local right_h=$(( (H - (right_n - 1) * GAP) / right_n ))
+
+        for (( i = left_n; i < n; i++ )); do
+            local r_index=$(( i - left_n ))
+            local px=$(( X + col_w + GAP ))
+            local py=$(( Y + r_index * (right_h + GAP) ))
+
+            place_window "${windows[$i]}" "$px" "$py" "$col_w" "$right_h"
+        done
+    fi
+
+    notify "Two-column layout."
+}
+
+if [[ "${1:-}" == "tile" ]]; then
+    tile_all
+    exit 0
+fi
+
+mode=0
+[[ -f "$STATE" ]] && mode="$(cat "$STATE" 2>/dev/null || echo 0)"
+
+mode=$(( (mode + 1) % 5 ))
+echo "$mode" > "$STATE"
+
+case "$mode" in
+    0)
+        tile_all
+        ;;
+    1)
+        layout_grid
+        ;;
+    2)
+        layout_main_left
+        ;;
+    3)
+        layout_main_right
+        ;;
+    4)
+        layout_two_columns
+        ;;
+esac
