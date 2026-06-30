@@ -11,10 +11,13 @@ bluez-utils
 brightnessctl
 btop
 btrfs-progs
+clang
 cmake
 code
 cryptsetup
 debugedit
+docker
+docker-compose
 dosfstools
 dunst
 efibootmgr
@@ -45,6 +48,8 @@ linux-firmware
 linux-headers
 linux-lts
 linux-lts-headers
+lldb
+ltrace
 man-db
 man-pages
 mesa
@@ -52,8 +57,10 @@ mpv
 nano
 network-manager-applet
 networkmanager
+nodejs
 noto-fonts
 noto-fonts-emoji
+npm
 ntfs-3g
 nvidia-open
 nvidia-open-lts
@@ -70,7 +77,10 @@ pipewire
 pipewire-alsa
 pipewire-jack
 pipewire-pulse
+pnpm
 power-profiles-daemon
+python-pip
+python-pipx
 qt5-wayland
 qt5ct
 qt6-wayland
@@ -82,6 +92,7 @@ snapper
 sof-firmware
 starship
 stow
+strace
 sudo
 swappy
 swaync
@@ -92,6 +103,8 @@ tree
 ttf-jetbrains-mono-nerd
 unrar
 unzip
+uv
+valgrind
 vim
 vulkan-intel
 waybar
@@ -102,6 +115,8 @@ wl-clipboard
 wofi
 xdg-desktop-portal-hyprland
 xdg-user-dirs
+yq
+zip
 zoxide
 zram-generator
 zsh

@@ -105,3 +105,6 @@ fi
 if [[ -f /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh ]]; then
   source /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 fi
+
+# Created by `pipx` on 2026-06-28 17:56:19
+export PATH="$PATH:/home/fernunex/dotfiles/scripts/.local/bin"
