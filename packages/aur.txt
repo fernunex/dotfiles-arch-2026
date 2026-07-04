@@ -5,3 +5,4 @@ mpvpaper-debug
 onlyoffice-bin
 paru
 paru-debug
+tty-clock
