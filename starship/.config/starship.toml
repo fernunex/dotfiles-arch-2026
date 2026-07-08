@@ -10,6 +10,13 @@ add_newline = true
 
 palette = "dark_red"
 
+
+# Give Starship more time to scan directories
+scan_timeout = 1000
+
+# Give commands like git status more time
+command_timeout = 2000
+
 [palettes.dark_red]
 red = "#ff3333"
 darkred = "#aa0000"

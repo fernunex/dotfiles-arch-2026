@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+
+pgrep -x hyprlock >/dev/null || hyprlock &
+sleep 1
+systemctl suspend
