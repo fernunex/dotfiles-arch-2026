@@ -1,0 +1,66 @@
+#!/usr/bin/env bash
+
+set -u
+
+INTERNAL="eDP-1"
+STATE_FILE="${XDG_RUNTIME_DIR:-/tmp}/hypr-display-mode"
+
+EXTERNAL="$(
+    hyprctl monitors all -j |
+    jq -r --arg internal "$INTERNAL" \
+      '.[] | select(.name != $internal) | .name' |
+    head -n 1
+)"
+
+notify() {
+    notify-send -a "Display Mode" "Monitor mode" "$1"
+}
+
+if [[ -z "$EXTERNAL" ]]; then
+    notify "No external monitor detected"
+    exit 1
+fi
+
+STATE=0
+
+if [[ -f "$STATE_FILE" ]]; then
+    STATE="$(cat "$STATE_FILE")"
+fi
+
+case "$STATE" in
+    0)
+        # Extend external monitor to the right
+        hyprctl keyword monitor "$INTERNAL,preferred,0x0,1"
+        hyprctl keyword monitor "$EXTERNAL,preferred,auto-right,1"
+
+        echo 1 > "$STATE_FILE"
+        notify "Extend → $EXTERNAL"
+        ;;
+
+    1)
+        # Mirror / Duplicate laptop display
+        hyprctl keyword monitor "$INTERNAL,preferred,0x0,1"
+        hyprctl keyword monitor "$EXTERNAL,preferred,0x0,1,mirror,$INTERNAL"
+
+        echo 2 > "$STATE_FILE"
+        notify "Duplicate / Mirror"
+        ;;
+
+    2)
+        # External monitor only
+        hyprctl keyword monitor "$EXTERNAL,preferred,0x0,1"
+        hyprctl keyword monitor "$INTERNAL,disable"
+
+        echo 3 > "$STATE_FILE"
+        notify "External monitor only"
+        ;;
+
+    3|*)
+        # Laptop monitor only
+        hyprctl keyword monitor "$INTERNAL,preferred,0x0,1"
+        hyprctl keyword monitor "$EXTERNAL,disable"
+
+        echo 0 > "$STATE_FILE"
+        notify "Laptop display only"
+        ;;
+esac
